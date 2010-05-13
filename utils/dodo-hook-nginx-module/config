@@ -1,0 +1,5 @@
+ngx_addon_name=ngx_http_dodo_hook_module
+HTTP_MODULES="$HTTP_MODULES ngx_http_dodo_hook_module"
+NGX_ADDON_SRCS="$NGX_ADDON_SRCS $ngx_addon_dir/src/ngx_http_dodo_hook_module.c"
+CFLAGS="$CFLAGS -finstrument-functions -finstrument-functions-exclude-file-list=$ngx_addon_dir/excluded-syms"
+
