@@ -10,6 +10,7 @@ use List::Util qw( min max );
 use Clone qw( clone );
 
 my (%edges, @edges, %colors, %urls, %methods);
+my $active_req;
 
 my $frame = 0;
 
@@ -25,20 +26,28 @@ sub gen_color ();
 sub gen_dot ();
 sub gen_last_html ();
 sub gen_html ();
+sub gen_dot_for_node ($$);
 
 while (<>) {
     if (/^>enter (.*)/) {
-        my $saved_edges = clone(\@edges);
+        my $saved_ctx = clone([$active_req, \@edges]);
 
         parse_enter($1);
 
-        if (! Compare($saved_edges, \@edges)) {
+        my $ctx = [$active_req, \@edges];
+        if (! Compare($saved_ctx, $ctx)) {
+            #if ($frame == 8) {
+                #warn "frame $frame: $active_req\n";
+            #}
+
             gen_dot();
             gen_html();
             $frame++;
         }
     }
 }
+
+#warn "weird active url: $methods{'0x6c17b8'} $urls{'0x6c17b8'}\n";
 
 gen_last_html();
 
@@ -80,6 +89,8 @@ sub parse_enter ($) {
     ### $c $m $r $ar $pr @posted
     $urls{$r} = $url;
     $methods{$r} = $method;
+
+    $active_req = $ar;
 }
 
 sub gen_color () {
@@ -133,6 +144,18 @@ sub gen_color () {
     return sprintf("#%02x%02x%02x", $r1, $r2, $r3);
 }
 
+sub gen_dot_for_node ($$) {
+    my ($out, $node) = @_;
+
+    my $color = $colors{$node};
+    my $label = gen_req_label($node);
+    if ($node eq $active_req) {
+        print $out qq{    r$node [shape="box" label="$label" color="black" fillcolor="$color"];\n};
+    } else {
+        print $out qq{    r$node [label="$label" fillcolor="$color"];\n};
+    }
+}
+
 sub gen_dot () {
     my $outfile = "fr-$frame.dot";
     my $imgfile = "fr-$frame.png";
@@ -154,17 +177,13 @@ _END_
         #warn "from $from, to $to";
         if ($from ne '(nil)') {
             if (! $defined{$from}) {
-                my $color = $colors{$from};
-                my $label = gen_req_label($from);
-                print $out qq{    r$from [label="$label" fillcolor="$color"];\n};
+                gen_dot_for_node($out, $from);
                 $defined{$from} = 1;
             }
         }
 
         if (! $defined{$to}) {
-            my $color = $colors{$to};
-            my $label = gen_req_label($to);
-            print $out qq{    r$to [label="$label" fillcolor="$color"];\n};
+            gen_dot_for_node($out, $to);
             $defined{$to} = 1;
         }
 
