@@ -1,0 +1,34 @@
+#!/usr/bin/env perl
+use v5.8;
+use strict;
+use warnings;
+
+my %addr_cache=();
+
+sub resolv_addr
+{
+	my ($bin, $addr)=@_;
+	if(exists $addr_cache{$addr}) {
+		return $addr_cache{$addr};
+	}
+
+	my @res = `addr2line -f -e $bin $addr`;
+	chomp for @res;
+	$addr_cache{$addr} = \@res;
+	return $addr_cache{$addr};
+}
+
+my $bin_path = $ARGV[0] || die "Must give the executable file corresponding to trace file";
+my $trace_file = $ARGV[1] || die "Must give trace file";
+
+open(my $fh, "<", $trace_file) or die "Can't open trace file $trace_file: ", $!;
+
+while(<$fh>) {
+	chomp;
+	my @fields = split(' ');
+	my $info_ar = resolv_addr($bin_path, $fields[3]);
+	my $info_ln = join(',', @$info_ar);
+	$fields[3] = $info_ln;
+	print join(' ', @fields), "\n";
+}
+

@@ -1,0 +1,5 @@
+EXCL_SYMS="$ngx_addon_dir/excl-syms"
+NGX_ADDON_DEPS="$EXCL_SYMS"
+SYM_LIST=`perl -ne 'chomp; push(@a,$_); END{print join(",",@a)}' $EXCL_SYMS`
+CFLAGS="$CFLAGS -g3 -O0 -finstrument-functions -finstrument-functions-exclude-function-list=$SYM_LIST"
+

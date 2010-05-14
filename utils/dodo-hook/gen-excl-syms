@@ -1,0 +1,18 @@
+#!/bin/bash
+if [ "$1" = "" ]; then
+	echo "Usage: $0 path/to/bin [negative pattern]"
+	echo "Example:"
+	echo -e "\t$0 path/to/bin ngx_http_request_t"
+	exit 1
+fi
+
+PATTERN=$2
+
+if [ "$PATTERN" = "" ]; then
+	FILTER_OPT=""
+else
+	FILTER_OPT="-v"
+fi
+
+gdb --quiet -batch -ex 'info functions' $1|grep ';'|grep $FILTER_OPT "$PATTERN"|perl -ne 'm/(\w+)\(/;print $1,"\n"'|sort|uniq
+

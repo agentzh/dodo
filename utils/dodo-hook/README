@@ -1,0 +1,9 @@
+* Usage:
+	1. ./gen-excl-syms path/to/nginx/bin/file ngx_http_request_t
+	2. make
+	3. cd into nginx src dir, build with opt --add-module=<dodo-hook srcdir>
+	4. run nginx with the following cmdline:
+		LD_PRELOAD=path/to/dodo-hook.so path/to/nginx/bin/file
+	5. the runtime trace is placed in files named trace.out.<pid>, use the following cmdline to convert to human-readable form:
+		trace-print path/to/nginx/bin/file <trace file>
+

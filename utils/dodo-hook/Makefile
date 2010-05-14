@@ -1,4 +1,4 @@
-NGX_HOME := ${HOME}/src/nginx-0.8.35/
+NGX_HOME := ${HOME}/src/nginx-0.8.35
 TARGET := dodo-hook.so
 SRC := dodo-hook.c
 INCS := \
