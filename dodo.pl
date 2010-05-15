@@ -27,9 +27,21 @@ sub gen_dot ();
 sub gen_last_html ();
 sub gen_html ();
 sub gen_dot_for_node ($$);
+sub escape_html ($);
+sub gen_log ();
 
-while (<>) {
-    if (/^>enter (.*)/) {
+my $infile = shift
+    or die "No input log file specified.\n";
+
+open my $in, $infile
+    or die "Cannot open $infile for reading: $!\n";
+
+my $log;
+while (<$in>) {
+    $log .= $_;
+
+    if (/^>enter \S+ (.*)/) {
+        #warn $1;
         my $saved_ctx = clone([$active_req, \@edges]);
 
         parse_enter($1);
@@ -41,11 +53,24 @@ while (<>) {
             #}
 
             gen_dot();
+            gen_log();
             gen_html();
+
+            undef $log;
+
             $frame++;
         }
     }
 }
+
+if ($log) {
+    gen_dot();
+    gen_log();
+    gen_html();
+    $frame++;
+}
+
+close $in;
 
 #warn "weird active url: $methods{'0x6c17b8'} $urls{'0x6c17b8'}\n";
 
@@ -206,5 +231,28 @@ sub gen_req_label ($) {
     my $url = $urls{$id};
     my $method = $methods{$id};
     return "$method $url";
+}
+
+sub gen_log () {
+    my $outfile = 'log.tt';
+    open my $out, ">$outfile"
+        or die "Cannot open $outfile for writing: $!\n";
+    my $html = escape_html($log);
+    $html =~ s{^\&gt;enter.*?$}{<br/><b>$&</b>}mg;
+    $html =~ s{^(\w+ \*\*\* \w+:) (.*?) at .*/(\w+\.\w+) line (\d+)}{<I>$1</I> <B>$2</B> ($3:$4)}mg;
+    $html =~ s{(\*\d+) (http finalize non-active request|http finalizer done|http request count is zero|http request count|http posted request|http finalize request:|http subrequest)}{$1 <b>$2</b>}mg;
+    print $out "<pre>\n";
+    print $out $html;
+    print $out "</pre>\n";
+    close $out;
+}
+
+sub escape_html ($) {
+    my $html = shift;
+    $html =~ s/&/&amp;/g;
+    $html =~ s/</&lt;/g;
+    $html =~ s/>/&gt;/g;
+    $html =~ s/"/&quot;/g;
+    $html;
 }
 

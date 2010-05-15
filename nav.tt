@@ -1,0 +1,11 @@
+<center>
+    [%- IF n > 0 %]
+    <a href="fr-[% n - 1 %].html">Prev</a>
+    [%- ELSE %]
+    Prev
+    [%- END %]
+
+    &nbsp; <a href="fr-[% n + 1 %].html">Next</a>
+    <p>
+</center>
+
